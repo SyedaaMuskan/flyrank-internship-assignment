@@ -104,7 +104,7 @@ The project is designed to act as a senior Backend AI Engineering mentor by:
 
 ### Evidence
 
-![Claude Project](screenshots/claude-project.png)
+![Claude Project](../screenshots/claude-project.png.png)
 
 ---
 
@@ -116,7 +116,7 @@ The course introduced effective strategies for collaborating with AI responsibly
 
 ### Evidence
 
-![Anthropic Academy Certificate](screenshots/anthropic-academy-certificate.png)
+![Anthropic Academy Certificate](../screenshots/anthropic-academy-certificate.png.jpg)
 
 ---
 
