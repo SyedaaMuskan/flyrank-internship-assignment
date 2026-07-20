@@ -111,7 +111,7 @@ The prompt focused on:
 
 ### Evidence
 
-![Pressure Test](screenshots/pressure-test.png)
+![Pressure Test](../screenshots/pressure-test.png)
 
 ---
 
@@ -132,7 +132,7 @@ Based on Claude's feedback, I made several design decisions:
 
 ### Homepage
 
-![Homepage](screenshots/portfolio-home.png)
+![Homepage](../screenshots/portfolio-home.png)
 
 ---
 
