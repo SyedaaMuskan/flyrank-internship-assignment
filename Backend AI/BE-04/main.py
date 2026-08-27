@@ -82,3 +82,54 @@ def get_profile(authorization: str = Header(None)):
     return {
         "message": "You have access to the protected profile"
     }
+@app.get("/protected/profile")
+def get_profile(authorization: str = Header(None)):
+
+    # 1. Check if Authorization header exists
+    if not authorization:
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    # 2. Check that it uses Bearer format
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    # 3. Extract the actual token
+    token = authorization.split(" ", 1)[1]
+
+    # 4. Make sure a token was actually provided
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    # 5. Ask Supabase to verify the token
+    try:
+        response = supabase.auth.get_user(token)
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )
+
+    # 6. Make sure Supabase returned a user
+    if response.user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )
+
+    # 7. Return authenticated user's information
+    user = response.user
+
+    return {
+        "id": user.id,
+        "email": user.email,
+        "created_at": user.created_at
+    }
