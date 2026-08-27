@@ -1,4 +1,4 @@
-from fastapi import FastAPI,HTTPException
+from fastapi import FastAPI,HTTPException,Header
 import os 
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -52,5 +52,33 @@ def login(data: dict):
         "access_token": response.session.access_token,
         "refresh_token": response.session.refresh_token
     }    
-
+@app.get("/public/info")
+def get_public_info():
+    return {"message": "Welcome stranger! This info is public."}
     
+@app.get("/protected/profile")
+def get_profile(authorization: str = Header(None)):
+    
+    if not authorization:
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    token = authorization.split(" ")[1]
+
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    return {
+        "message": "You have access to the protected profile"
+    }
