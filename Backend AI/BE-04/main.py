@@ -1,4 +1,4 @@
-from fastapi import FastAPI,HTTPException,Header
+from fastapi import FastAPI,HTTPException,Header,Depends
 import os 
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -10,6 +10,43 @@ port = os.getenv("PORT", 8000)
 
 supabase: Client = create_client(supabase_url, supabase_key)
 app = FastAPI()
+def get_current_user(authorization: str = Header(None)):
+
+    if not authorization:
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    token = authorization.split(" ", 1)[1]
+
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    try:
+        response = supabase.auth.get_user(token)
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )
+
+    if response.user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )
+
+    return response.user
 
 @app.get("/")
 def read_root():
@@ -57,79 +94,42 @@ def get_public_info():
     return {"message": "Welcome stranger! This info is public."}
     
 @app.get("/protected/profile")
-def get_profile(authorization: str = Header(None)):
-    
-    if not authorization:
-        raise HTTPException(
-            status_code=401,
-            detail="Access token required"
-        )
-
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=401,
-            detail="Access token required"
-        )
-
-    token = authorization.split(" ")[1]
-
-    if not token:
-        raise HTTPException(
-            status_code=401,
-            detail="Access token required"
-        )
-
-    return {
-        "message": "You have access to the protected profile"
-    }
-@app.get("/protected/profile")
-def get_profile(authorization: str = Header(None)):
-
-    # 1. Check if Authorization header exists
-    if not authorization:
-        raise HTTPException(
-            status_code=401,
-            detail="Access token required"
-        )
-
-    # 2. Check that it uses Bearer format
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=401,
-            detail="Access token required"
-        )
-
-    # 3. Extract the actual token
-    token = authorization.split(" ", 1)[1]
-
-    # 4. Make sure a token was actually provided
-    if not token:
-        raise HTTPException(
-            status_code=401,
-            detail="Access token required"
-        )
-
-    # 5. Ask Supabase to verify the token
-    try:
-        response = supabase.auth.get_user(token)
-    except Exception:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired token"
-        )
-
-    # 6. Make sure Supabase returned a user
-    if response.user is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired token"
-        )
-
-    # 7. Return authenticated user's information
-    user = response.user
+def get_profile(user=Depends(get_current_user)):
 
     return {
         "id": user.id,
         "email": user.email,
         "created_at": user.created_at
     }
+
+@app.get("/protected/dashboard")
+def get_dashboard(user=Depends(get_current_user)):
+    return {"message": f"Welcome to your dashboard, {user.email}!"}
+
+
+@app.post("/auth/logout", status_code=204)
+def logout(authorization: str = Header(None)):
+
+    if not authorization:
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Access token required"
+        )
+
+    token = authorization.split(" ", 1)[1]
+
+    try:
+        supabase.auth.sign_out()
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )
+
+    return None
