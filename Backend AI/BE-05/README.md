@@ -1,38 +1,50 @@
-# The Polite Scraper
+# Books to Scrape — Polite Book Scraper
 
-## Target Classification
+A small Python scraper built as part of the FlyRank Backend Engineering internship.
 
-### Target
-This project scrapes the public practice website Books to Scrape:
+The scraper discovers book detail pages from the Books to Scrape catalogue, fetches the detail pages politely, extracts raw fields, normalizes prices, validates records with Pydantic, handles individual page failures, and writes reproducible JSON output.
 
-https://books.toscrape.com/
+## Stage 0 — Target Classification
 
-### Why this target?
-Books to Scrape is a sandbox designed specifically for practicing web scraping. It is appropriate for this educational assignment because the site exists for scraping practice.
+**Target:** Books to Scrape
 
-### Scope
-This scraper will only process the first three catalogue pages, discovering and collecting information from 60 book pages.
+**Classification:** Public, static HTML website.
 
-### Data collected
-For each book, the scraper will collect:
+The required book information is already present in the HTML returned by the server, so this scraper does not require browser automation.
 
-- Title
-- Product URL
-- Price text
-- Availability text
-- Rating text
-- Description
-- Source page
-- Fetch timestamp
+## What the scraper does
 
-### Robots.txt check
-I requested:
+The pipeline:
 
-https://books.toscrape.com/robots.txt
+1. Fetches catalogue pages.
+2. Discovers book detail URLs.
+3. Resolves URLs to absolute canonical URLs.
+4. Fetches and caches detail pages.
+5. Extracts raw book information.
+6. Keeps the original `price_text`.
+7. Converts `price_text` into numeric `price_gbp`.
+8. Validates every record with Pydantic.
+9. Sends invalid records to `errors.json`.
+10. Deduplicates books using their canonical product URL.
+11. Writes valid records to `output/books.json`.
+12. Writes run statistics to `output/run-report.json`.
 
-The server returned HTTP status code 404, so no robots file was found.
+## Lane
 
-A missing robots.txt file is not permission to scrape a website. It only means that no robots.txt file was available at that location.
+**Backend / Python Web Scraping**
 
-### Ethical commitment
-I will not reuse this code on another site without checking its rules and terms first.
+## Requirements
+
+- Python 3.10+
+- `requests`
+- `beautifulsoup4`
+- `pydantic`
+
+## Installation
+
+Clone the repository and enter the project directory.
+
+Create a virtual environment:
+
+```bash
+python -m venv .venv
